@@ -92,7 +92,7 @@ class VenueForm(Form):
         # TODO implement enum restriction
         'genres', validators=[DataRequired()],
         choices=[
-            ('Alternative', 'Alternative'),
+            (1, 'Alternative'),
             ('Blues', 'Blues'),
             ('Classical', 'Classical'),
             ('Country', 'Country'),
