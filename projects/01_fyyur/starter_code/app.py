@@ -12,6 +12,7 @@ import logging
 from logging import Formatter, FileHandler
 from flask_wtf import Form
 from forms import *
+from flask_migrate import Migrate
 #----------------------------------------------------------------------------#
 # App Config.
 #----------------------------------------------------------------------------#
@@ -20,6 +21,7 @@ app = Flask(__name__)
 moment = Moment(app)
 app.config.from_object('config')
 db = SQLAlchemy(app)
+migrate = Migrate(app, db)
 
 # TODO: connect to a local postgresql database
 
@@ -38,6 +40,11 @@ class Venue(db.Model):
     phone = db.Column(db.String(120))
     image_link = db.Column(db.String(500))
     facebook_link = db.Column(db.String(120))
+    website = db.Column(db.String(120))
+    seeking_talent = db.Column(db.Boolean())
+    seeking_description = db.Column(db.String(500))
+    genres = db.Column(db.String(120))
+    shows = db.relationship('Show', backref=('Venue'), lazy=True)
 
     # TODO: implement any missing fields, as a database migration using Flask-Migrate
 
@@ -52,8 +59,18 @@ class Artist(db.Model):
     genres = db.Column(db.String(120))
     image_link = db.Column(db.String(500))
     facebook_link = db.Column(db.String(120))
+    website = db.Column(db.String(120))
+    seeking_venue = db.Column(db.Boolean())
+    seeking_description = db.Column(db.String(500))
+    shows = db.relationship('Show', backref=('Artist'), lazy=True)
 
     # TODO: implement any missing fields, as a database migration using Flask-Migrate
+class show(db.Model):
+  __tablename__ = 'Show'
+  id = db.Column(db.Integer, primary_key=True)
+  venue_id = db.Column(db.Integer, db.ForeignKey('Venue.id'))
+  artist_id = db.Column(db.Integer, db.ForeignKey('Artist.id'))
+  start_time = db.Column(db.DateTime())
 
 # TODO Implement Show and Artist models, and complete all model relationships and properties, as a database migration.
 
@@ -221,7 +238,7 @@ def create_venue_form():
 def create_venue_submission():
   # TODO: insert form data as a new Venue record in the db, instead
   # TODO: modify data to be the data object returned from db insertion
-
+  print(request.form.getlist('genres'))
   # on successful db insert, flash success
   flash('Venue ' + request.form['name'] + ' was successfully listed!')
   # TODO: on unsuccessful db insert, flash an error instead.
