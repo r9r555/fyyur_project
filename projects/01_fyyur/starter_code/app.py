@@ -29,13 +29,32 @@ migrate = Migrate(app, db)
 # Models.
 #----------------------------------------------------------------------------#
 
+venueGenres = db.Table('venueGenres',
+    db.Column('genre_id', db.Integer, db.ForeignKey('Genre.id'), primary_key=True),
+    db.Column('venue_id', db.Integer, db.ForeignKey('Venue.id'), primary_key=True)
+)
+artistGenres = db.Table('artistGenres',
+    db.Column('genre_id', db.Integer, db.ForeignKey('Genre.id'), primary_key=True),
+    db.Column('artist_id', db.Integer, db.ForeignKey('Artist.id'), primary_key=True)
+)
+class Genre(db.Model):
+    __tablename__ = 'Genre'
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String)
+class State(db.Model):
+    __tablename__ = 'State'
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String)
+    Venue = db.relationship('Venue', backref=('State'), lazy=True)
+    Artist = db.relationship('Artist', backref=('State'), lazy=True)
+
 class Venue(db.Model):
     __tablename__ = 'Venue'
 
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String)
     city = db.Column(db.String(120))
-    state = db.Column(db.String(120))
+    state = db.Column(db.Integer,db.ForeignKey('State.id'))
     address = db.Column(db.String(120))
     phone = db.Column(db.String(120))
     image_link = db.Column(db.String(500))
@@ -43,8 +62,9 @@ class Venue(db.Model):
     website = db.Column(db.String(120))
     seeking_talent = db.Column(db.Boolean())
     seeking_description = db.Column(db.String(500))
-    genres = db.Column(db.String(120))
     shows = db.relationship('Show', backref=('Venue'), lazy=True)
+    genres = db.relationship('Genre', secondary=venueGenres,
+      backref=db.backref('Venue', lazy=True))
 
     # TODO: implement any missing fields, as a database migration using Flask-Migrate
 
@@ -54,15 +74,16 @@ class Artist(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String)
     city = db.Column(db.String(120))
-    state = db.Column(db.String(120))
+    state = db.Column(db.Integer, db.ForeignKey('State.id'))
     phone = db.Column(db.String(120))
-    genres = db.Column(db.String(120))
     image_link = db.Column(db.String(500))
     facebook_link = db.Column(db.String(120))
     website = db.Column(db.String(120))
     seeking_venue = db.Column(db.Boolean())
     seeking_description = db.Column(db.String(500))
     shows = db.relationship('Show', backref=('Artist'), lazy=True)
+    genres = db.relationship('Genre', secondary=artistGenres,
+      backref=db.backref('Artist', lazy=True))
 
     # TODO: implement any missing fields, as a database migration using Flask-Migrate
 class show(db.Model):
@@ -77,6 +98,90 @@ class show(db.Model):
 #----------------------------------------------------------------------------#
 # Filters.
 #----------------------------------------------------------------------------#
+# a list of states and genres and to get their id without sending a request to the db
+genreDict={
+            1:'Alternative' ,
+            2: 'Blues' ,
+            3: 'Classical' ,
+            4: 'Country' ,
+            5: 'Electronic' ,
+            6: 'Folk' ,
+            7: 'Funk' ,
+            8: 'Hip-Hop' ,
+            9: 'Heavy Metal' ,
+            10:'Instrumental' ,
+            11: 'Jazz' ,
+            12: 'Musical Theatre' ,
+            13: 'Pop' ,
+            14: 'Punk' ,
+            15: 'R&B' ,
+            16: 'Reggae' ,
+            17: 'Rock n Roll' ,
+            18: 'Soul' ,
+            19: 'Other' 
+}
+stateDict= { 1: 'AL' , 
+             2: 'AK' ,
+             3: 'AZ' ,
+             4: 'AR' ,
+             5: 'CA' ,
+             6: 'CO' ,
+             7: 'CT' ,
+             8: 'DE' ,
+             9: 'DC' ,
+             10: 'FL' ,
+             11: 'GA' ,
+             12: 'HI' ,
+             13: 'ID' ,
+             14: 'IL' ,
+             15: 'IN' ,
+             16: 'IA' ,
+             17: 'KS' ,
+             18: 'KY' ,
+             19: 'LA' ,
+             20: 'ME' ,
+             21: 'MT' ,
+             22: 'NE' ,
+             23: 'NV' ,
+             24: 'NH' ,
+             25: 'NJ' ,
+             26: 'NM' ,
+             27: 'NY' ,
+             28: 'NC' ,
+             29: 'ND' ,
+             30: 'OH' ,
+             31: 'OK' ,
+             32: 'OR' ,
+             33: 'MD' ,
+             34: 'MA' ,
+             35: 'MI' ,
+             36: 'MN' ,
+             37: 'MS' ,
+             38: 'MO' ,
+             39: 'PA' ,
+             40: 'RI' ,
+             41: 'SC' ,
+             42: 'SD' ,
+             43: 'TN' ,
+             44: 'TX' ,
+             45: 'UT' ,
+             46: 'VT' ,
+             47: 'VA' ,
+             48: 'WA' ,
+             49: 'WV' ,
+             50: 'WI' ,
+             51: 'WY' ,}
+def getKeys(dictOfElements, values):
+    listOfKeys = list()
+    listOfItems = dictOfElements.items()
+    for item  in listOfItems:
+      for value in values:      
+        if item[1] == value:
+            listOfKeys.append(item[0])
+        else:
+          return "err"    
+    return  listOfKeys
+
 
 def format_datetime(value, format='medium'):
   date = dateutil.parser.parse(value)
@@ -238,7 +343,12 @@ def create_venue_form():
 def create_venue_submission():
   # TODO: insert form data as a new Venue record in the db, instead
   # TODO: modify data to be the data object returned from db insertion
-  print(request.form.getlist('genres'))
+ # try:
+   # name = request.form.get('name')
+
+  
+  #print(getKeys(genreDict,request.form.getlist('genres')))
+  
   # on successful db insert, flash success
   flash('Venue ' + request.form['name'] + ' was successfully listed!')
   # TODO: on unsuccessful db insert, flash an error instead.
