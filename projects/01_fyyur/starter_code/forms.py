@@ -1,7 +1,7 @@
 from datetime import datetime
 from flask_wtf import Form
 from wtforms import StringField, SelectField, SelectMultipleField, DateTimeField
-from wtforms.validators import DataRequired, AnyOf, URL
+from wtforms.validators import DataRequired, AnyOf, URL , Optional
 
 class ShowForm(Form):
     artist_id = StringField(
@@ -86,7 +86,7 @@ class VenueForm(Form):
         'phone'
     )
     image_link = StringField(
-        'image_link'
+        'image_link', validators=[URL(),Optional()]
     )
     genres = SelectMultipleField(
         # TODO implement enum restriction
@@ -114,8 +114,20 @@ class VenueForm(Form):
         ]
     )
     facebook_link = StringField(
-        'facebook_link', validators=[URL()]
+        'facebook_link', validators=[URL(),Optional()]
     )
+    website = StringField(
+        'website', validators=[URL(),Optional()]
+    )
+    seeking_description = StringField(
+        'seeking_description', validators=[Optional()]
+    )
+    seeking_talent = SelectField(
+        'seeking_talent',validators=[DataRequired()],choices=(
+            'yes','no'
+        )
+    )
+
 
 class ArtistForm(Form):
     name = StringField(
@@ -186,37 +198,7 @@ class ArtistForm(Form):
     )
     image_link = StringField(
         'image_link'
-    )
-    def validateGenre(form, field):
-        genreDict={
-            1:'Alternative' ,
-            2: 'Blues' ,
-            3: 'Classical' ,
-            4: 'Country' ,
-            5: 'Electronic' ,
-            6: 'Folk' ,
-            7: 'Funk' ,
-            8: 'Hip-Hop' ,
-            9: 'Heavy Metal' ,
-            10:'Instrumental' ,
-            11: 'Jazz' ,
-            12: 'Musical Theatre' ,
-            13: 'Pop' ,
-            14: 'Punk' ,
-            15: 'R&B' ,
-            16: 'Reggae' ,
-            17: 'Rock n Roll' ,
-            18: 'Soul' ,
-            19: 'Other' }
-        genreList =  genreDict.items()   
-        for item  in genreList:     
-            if item[1] == field.data:
-            
-            else:
-                
-        raise ValidationError("Sorry, you have chosen a wrong choice")
-
-        
+    )        
     genres = SelectMultipleField(
         # TODO implement enum restriction
 
