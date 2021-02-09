@@ -44,7 +44,7 @@ def create_app(test_config=None):
   @app.route('/api/categories')
   def categories_get():
     try:
-      categories = Category.get.all()
+      categories = Category.query.all()
       categories_dict = {}
       for category in categories:
         categories_dict = {category.id:category.type}
@@ -54,7 +54,8 @@ def create_app(test_config=None):
                 "categories": categories_dict
             })
 
-    except:
+    except Exception as e:
+      print(f'Exception "{e}"  in creating a new venue')
       abort(500)
   '''
   @TODO: 
@@ -155,10 +156,9 @@ def create_app(test_config=None):
   Try using the word "title" to start. 
   '''
   @app.route('/api/questions/search', methods=['POST'])
-  def question_post():
-    data = request.json
-    search_term = data['searchTerm'].strip()
-
+  def question_search():
+    
+    search_term = request.form['searchTerm'] 
     # Use filter, not filter_by when doing LIKE search (i=insensitive to case)
     questions_filtered = Question.query.filter(Question.question.ilike(f'%{search_term}%')).all()   # Wildcards search before and after
             
@@ -166,11 +166,13 @@ def create_app(test_config=None):
     # which project doesn't exclude).  However Search Questions view in Frontend doesn't already include
     # support for pagination, so this time I won't do it (or you can't see all valid search results).
     #q_list = paginate(request, questions)
-    q_list = [q.format() for q in questions]
+    question_list = []
+    for question in questions_filtered:
+      question_list.append(question.format())
 
     return jsonify({
       "success": True,
-      "questions": q_list
+      "questions": question_list
     })
 
   '''
@@ -181,23 +183,19 @@ def create_app(test_config=None):
   categories in the left column will cause only questions of that 
   category to be shown. 
   '''
-  @app.route('/api/categories/<int:cat_id>/questions')
-  def get_category_questions(cat_id):
-  '''GET all the questions based on a particular category'''
-    questions = Question.query.filter_by(category=str(cat_id)).all()
-
-    q_list = paginate(request, questions)
-
-    if len(q_list) == 0:
-    # Requested a page past what exists
-      abort(404)
+  @app.route('/api/categories/<int:id>/questions')
+  def get_category_questions(id):
+    questions = Question.query.filter_by(category=str(id)).all()
+    questions_count = len(questions)
+    page = request.args.get('page', 1, type=int)
+    questions_list = paginate(page,questions)
 
     return jsonify({
       'success': True,
-      'questions': q_list,
-      'total_questions': len(questions),
-      'categories': Category.query.get(cat_id).format(),
-      'current_category': cat_id
+      'questions': questions_list,
+      'total_questions': questions_count,
+      'categories': Category.query.get(id).format(),
+      'current_category': id
      })
 
   '''
