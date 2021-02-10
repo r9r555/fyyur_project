@@ -47,7 +47,7 @@ def create_app(test_config=None):
       categories = Category.query.all()
       categories_dict = {}
       for category in categories:
-        categories_dict = {category.id:category.type}
+        categories_dict[category.id] = category.type
 
       return jsonify({
                 "success": True,
@@ -55,7 +55,7 @@ def create_app(test_config=None):
             })
 
     except Exception as e:
-      print(f'Exception "{e}"  in creating a new venue')
+      print(f'Exception "{e}"')
       abort(500)
   '''
   @TODO: 
@@ -77,10 +77,10 @@ def create_app(test_config=None):
       page = request.args.get('page', 1, type=int)
       questions_list = paginate(page,questions)
 
-      categories = Category.get.all()
+      categories = Category.query.all()
       categories_dict = {}
       for category in categories:
-        categories_dict = {category.id:category.type}      
+        categories_dict[category.id] = category.type      
       return jsonify({
         'success': True,
         'questions': questions_list,
@@ -88,7 +88,8 @@ def create_app(test_config=None):
         'categories': categories_dict,
         'current_category': None
       })
-    except:
+    except Exception as e:
+      print(f'Exception "{e}"')
       abort(404) 
   '''
   @TODO: 
@@ -112,7 +113,8 @@ def create_app(test_config=None):
           'success': True,
           'deleted': id
         })
-      except:
+      except Exception as e:
+        print(f'Exception "{e}"')
         abort(422)  
   '''
   @TODO: 
@@ -131,13 +133,15 @@ def create_app(test_config=None):
     if (data['question'].strip() == " ") or (data['answer'].strip() == " "):
     # Don't populate blanks, return a bad request error
       abort(400)
-
+    question = data['question'].strip()
+    answer = data['answer'].strip()
+    category = data['category']
+    difficulty=data['difficulty']
     try:
-      new_question = Question(question=form_data['question'].strip(), answer=form_data['answer'].strip(), \
-      category=form_data['category'], difficulty=form_data['difficulty'])
+      new_question = Question(question=question, answer=answer, category=category, difficulty=difficulty)
       new_question.insert()
-    except:
-    # Issue creating new question?  422 means understood the request but couldn't do it
+    except Exception as e:
+      print(f'Exception "{e}" ')
       abort(422)
 
     return jsonify({
@@ -157,8 +161,8 @@ def create_app(test_config=None):
   '''
   @app.route('/api/questions/search', methods=['POST'])
   def question_search():
-    
-    search_term = request.form['searchTerm'] 
+    data = request.json
+    search_term = data['searchTerm'] 
     # Use filter, not filter_by when doing LIKE search (i=insensitive to case)
     questions_filtered = Question.query.filter(Question.question.ilike(f'%{search_term}%')).all()   # Wildcards search before and after
             
@@ -197,7 +201,7 @@ def create_app(test_config=None):
       'categories': Category.query.get(id).format(),
       'current_category': id
      })
-
+  
   '''
   @TODO: 
   Create a POST endpoint to get questions to play the quiz. 
@@ -209,13 +213,66 @@ def create_app(test_config=None):
   one question at a time is displayed, the user is allowed to answer
   and shown whether they were correct or not. 
   '''
+  @app.route('/api/quizzes', methods=['POST'])
+  def play_quiz():
+    data = request.json
+    question = []
+    try:
+      categ_id = data['quiz_category']['id']
+      prev_quest = data['previous_questions']
+      if categ_id == 0:
+        questions = Question.query.filter(Question.id.notin_(prev_quest))
+        questions = [q.format() for q in questions]
+        question = random.choice(questions)
+      else:
+        #questions = Question.query.filter(Question.id.notin_(prev_quest) and_ Question.category = str(categ_id))
+        questions = [q.format() for q in questions]
+        question = random.choice(questions)   
+    except Exception as e:
+      print(f'Exception "{e}" ')
+      abort(422)
+    return jsonify({
+      'success': True,
+      'question': question
+    })
 
   '''
   @TODO: 
   Create error handlers for all expected errors 
   including 404 and 422. 
   '''
-  
+  @app.errorhandler(400)
+  def bad_request(error):
+    return jsonify({
+      "success": False,
+      "error": 400,
+      "message": "Bad Request"
+    })
+
+  @app.errorhandler(404)
+  def not_found(error):
+    return jsonify({
+      "success": False,
+      "error": 404,
+      "message": "Not found"
+    })
+
+  @app.errorhandler(422)
+  def unprocessable_entity(error):
+    return jsonify({
+      "success": False,
+      "error": 422,
+      "message": "Unprocessable Entity"
+    })
+
+  @app.errorhandler(500)
+  def server_error(error):
+    return jsonify({
+      "success": False,
+      "error": 500,
+      "message": "Internal Server Error"
+    })
+
   return app
 
     
