@@ -15,7 +15,7 @@ def paginate(page, data):
   for question in data[start:end]:
     paginatedData.append(question.format())
   if len(paginatedData)==0:
-    raise Exception('page does not exist')
+    abort(404)
 
   return paginatedData
 
@@ -222,12 +222,11 @@ def create_app(test_config=None):
       prev_quest = data['previous_questions']
       if categ_id == 0:
         questions = Question.query.filter(Question.id.notin_(prev_quest))
-        questions = [q.format() for q in questions]
-        question = random.choice(questions)
       else:
-        #questions = Question.query.filter(Question.id.notin_(prev_quest) and_ Question.category = str(categ_id))
-        questions = [q.format() for q in questions]
-        question = random.choice(questions)   
+        questions = Question.query.filter(Question.id.notin_(prev_quest) ,Question.category == str(categ_id))
+      
+      questions = [q.format() for q in questions]
+      question = random.choice(questions)     
     except Exception as e:
       print(f'Exception "{e}" ')
       abort(422)
