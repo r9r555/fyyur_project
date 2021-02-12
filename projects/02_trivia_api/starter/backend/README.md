@@ -69,14 +69,14 @@ One note before you delve into your tasks: for each endpoint you are expected to
 
 
 '''
-Endpoints
-GET '/api/categories'
-GET '/api/questions'
-GET '/api/categories/<int:id>/questions'
-POST '/api/questions'
-POST '/api/questions/search'
-POST '/api/quizzes'
-DELETE '/api/questions/<int:id>'
+## Endpoints
+- GET '/api/categories'
+- GET '/api/questions'
+- GET '/api/categories/<int:id>/questions'
+- POST '/api/questions'
+- POST '/api/questions/search'
+- POST '/api/quizzes'
+- DELETE '/api/questions/<int:id>'
 '''
 
 ## GET '/api/categories'
@@ -104,7 +104,9 @@ DELETE '/api/questions/<int:id>'
 - You can send URL parameter 'page' and set it to the page number 'default is 1'
 - Request Arguments: None
 - Returns a list of all questions , categories , a count of the questions and success status
- '''
+
+
+```
  {
   "categories": {
     "1": "Science", 
@@ -130,13 +132,14 @@ DELETE '/api/questions/<int:id>'
   "total_questions": 19
 }
 
- '''
+```
 
 ## GET '/api/categories/<int:id>/questions'
 - Fetches a list based on a single category
 - Request Arguments: category id
 - Returns a list of all questions , thier count in a certain category and success status
-'''
+
+```
 {
   "categories": {
     "id": 3, 
@@ -169,26 +172,22 @@ DELETE '/api/questions/<int:id>'
   "success": true, 
   "total_questions": 3
 }
-
-
-'''
+```
 ## POST '/api/questions'
 - Creates a new question 
 - Request Arguments: send the question data in the request body and it type is 'application/json'
 - Returns a success status and the is of the new question
-'''
+```
 {
     "success": true,
     "added": 25
 }  
-
-
-'''
+```
 ## POST '/api/questions/search'
 - Fetches a list of questions based on a search term in any position and case insenstive
 - Request Arguments: send the search term in the request body and it type is 'application/json'
 - Returns a succes status and a list of filtered questions
-'''
+```
 {
   "questions": [
     {
@@ -210,13 +209,13 @@ DELETE '/api/questions/<int:id>'
 }
 
 
-'''
+```
 
 ## POST '/api/quizzes'
 - Fetches a random question based ona single or all categories to play the game
 - Request Arguments: send the quiz category '0 is all categories' and a list of previous questions in the request body and it type is 'application/json'
 - Returns a succes status and a question
-'''
+```
 {
   "question": {
     "answer": "Edward Scissorhands", 
@@ -229,19 +228,19 @@ DELETE '/api/questions/<int:id>'
 }
 
 
-'''
+```
 
 ## DELETE '/api/questions/<int:id>'
 - Deletes a question 
 - Request Arguments: question id 
 - Returns a success status and the id of the deleted question
-'''
+```
 {
     'deleted': 1,
     'success': true
 }
 
-'''
+```
 
 
 ## Testing
