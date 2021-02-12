@@ -68,7 +68,7 @@ One note before you delve into your tasks: for each endpoint you are expected to
 9. Create error handlers for all expected errors including 400, 404, 422 and 500. +
 
 
-
+'''
 Endpoints
 GET '/api/categories'
 GET '/api/questions'
@@ -77,6 +77,7 @@ POST '/api/questions'
 POST '/api/questions/search'
 POST '/api/quizzes'
 DELETE '/api/questions/<int:id>'
+'''
 
 ## GET '/api/categories'
 - Fetches a dictionary of categories in which the keys are the ids and the value is the corresponding string of the category
