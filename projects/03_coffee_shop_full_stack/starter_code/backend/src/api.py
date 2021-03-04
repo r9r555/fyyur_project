@@ -16,7 +16,7 @@ CORS(app)
 !! NOTE THIS WILL DROP ALL RECORDS AND START YOUR DB FROM SCRATCH
 !! NOTE THIS MUST BE UNCOMMENTED ON FIRST RUN
 '''
-# db_drop_and_create_all()
+#db_drop_and_create_all()
 
 ## ROUTES
 '''
@@ -27,6 +27,21 @@ CORS(app)
     returns status code 200 and json {"success": True, "drinks": drinks} where drinks is the list of drinks
         or appropriate status code indicating reason for failure
 '''
+@app.route('/drinks')
+def drinks_get():
+    try:
+        drinkList = Drink.query.all()
+        shortList = []
+        for  drink in drinkList:
+            shortList.append(drink.short())
+
+        return ({
+            'success': True,
+            'drinks': shortList
+        })
+    
+    except:
+        abort(500)
 
 
 '''
@@ -37,6 +52,22 @@ CORS(app)
     returns status code 200 and json {"success": True, "drinks": drinks} where drinks is the list of drinks
         or appropriate status code indicating reason for failure
 '''
+@app.route('/drinks_details')
+@requires_auth(permission='get:drinks-detail')
+def drinks_details_get(payload):
+    try:
+        drinkList = Drink.query.all()
+        longList = []
+        for  drink in drinkList:
+            longList.append(drink.long())
+    
+        return ({
+            'success': True,
+            'drinks': shortList
+        })
+    
+    except:
+        abort(500)    
 
 
 '''
@@ -48,7 +79,35 @@ CORS(app)
     returns status code 200 and json {"success": True, "drinks": drink} where drink an array containing only the newly created drink
         or appropriate status code indicating reason for failure
 '''
+@app.route('/drinks', methods=["POST"])
+@requires_auth(permission='post:drinks')
+def drinks_post(payload):
+    req_in = request.json
 
+    if not all([ x in req_in for x in ['title', 'recipe'] ]):
+        abort(422)
+    
+    title = req_in['title']
+    recipe = req_in['recipe']
+
+    if type(recipe) is not list:
+        abort(422)
+    if not all([ x in ingredient for x in ['name', 'color', 'parts'] ]):
+        abort(422)
+
+    recipe = json.dumps(recipe)
+    try:
+        drink = Drink(title=title, recipe=recipe)
+        drink.insert()
+    except Exception as e:
+        print(f'Exception in adding new drink: {e}')
+        abort(422)  
+    
+    return jsonify({
+        "success": True,
+        "drinks": [drink.long()] 
+    })
+    
 
 '''
 @TODO implement endpoint
