@@ -37,7 +37,12 @@ From within the `./src` directory first ensure you are working using your create
 Each time you open a new terminal session, run:
 
 ```bash
+python -m virtualenv env
+source env/Scripts/activate
 export FLASK_APP=api.py;
+export FLASK_ENV=development
+flask run
+
 ```
 
 To run the server, execute:
